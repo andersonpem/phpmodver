@@ -86,6 +86,7 @@ class Module {
     echo $module->checkMatch();
 /**
  * Possible parameters:
+ * no parameter (or -s): Returns a summary of the Module's version.
  * --setver: sets the entire module's version (major, minor and patch)
  * --setmajor: sets the major version number
  * --setminor: sets the minor version number
