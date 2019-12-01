@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /**
  * pmv - PHP Module Versioner
@@ -9,13 +10,15 @@ system('clear');
 
 
 
-class Module {
+class Module
+{
     /**
      * Class constructor.
      */
     protected $argv;
-    public function __construct($argv){
-        if(count($argv)==1){
+    public function __construct($argv)
+    {
+        if (count($argv) == 1) {
             $this->splash();
             die();
         }
@@ -26,32 +29,30 @@ class Module {
             } catch (Exception $ex) {
                 $this->error("Error reading the module's files\nSomething went wrong. The files do exist but I can't read them.\nMaybe you don't have permissions for it. Check that :)");
             }
-        }
-        else {
+        } else {
             $this->error("Error: Module and/or composer files not found\nIt seems like your're not inside the folder of a nWidart Laravel Module.\nAre you in the main project's folder? I do that all the time :P\nIf so, get to your module's root folder before executing this utility.");
         }
-        
+
         $this->compj = json_decode($this->compfile);
-        if(empty($this->compj->type) || ($this->compj->type<>'laravel-module')){
+        if (empty($this->compj->type) || ($this->compj->type <> 'laravel-module')) {
             $this->warnAndDie(
-                "Error: not a nWidart Laravel Module\nThe contents of this directory doesn't seem to be from a laravel-module.\nWell, at least not one that you can download from packagist.\nIf This is a laravel-module, include the line:\e[0;34;40m \n\n\"type\": \"laravel-module\",\n\e[1;33;40m\nin your module's composer.json file, so it can be identified as a module\nfor installers and in services like Packagist. Follow the rules :)");
+                "Error: not a nWidart Laravel Module\nThe contents of this directory doesn't seem to be from a laravel-module.\nWell, at least not one that you can download from packagist.\nIf This is a laravel-module, include the line:\e[0;34;40m \n\n\"type\": \"laravel-module\",\n\e[1;33;40m\nin your module's composer.json file, so it can be identified as a module\nfor installers and in services like Packagist. Follow the rules :)"
+            );
         }
         $this->modj = json_decode($this->modfile);
         $this->verC = explode('.', $this->compj->version);
         $this->verM = explode('.', $this->modj->version);
         if ($this->checkMatch()) {
-            $this->composername=$this->compj->name;
-            $this->name=$this->modj->name;
-            $this->major=$this->verC[0];
-            $this->minor=$this->verC[1];
-            $this->patch=$this->verC[2];
-        }
-        else {
+            $this->composername = $this->compj->name;
+            $this->name = $this->modj->name;
+            $this->major = $this->verC[0];
+            $this->minor = $this->verC[1];
+            $this->patch = $this->verC[2];
+        } else {
             echo "\e[1;31;40m!!! There are version inconsistencies in your module's files !!!          \e[0m\n";
-            echo "Composer file is at \e[1;31;40mv".$this->verC[0].'.'.$this->verC[1].'.'.$this->verC[2]. "\e[1;37;40m while the Module is at \e[1;31;40mv".$this->verM[0] . '.' . $this->verM[1] . '.' . $this->verM[2].".\n";
+            echo "Composer file is at \e[1;31;40mv" . $this->verC[0] . '.' . $this->verC[1] . '.' . $this->verC[2] . "\e[1;37;40m while the Module is at \e[1;31;40mv" . $this->verM[0] . '.' . $this->verM[1] . '.' . $this->verM[2] . ".\n";
             echo "\e[1;37;40mYou can fix this by setting the value with this utility running:\n";
             echo "\e[0;34;40m pmv --setver 3.0.0 (example)\e[0m\n";
-
         }
         $this->router($argv);
     }
@@ -63,7 +64,7 @@ class Module {
     protected $modj;
 
 
-    
+
     //Properties
     protected $name;
     protected $composername;
@@ -75,18 +76,19 @@ class Module {
     protected $verM;
     // Version as in the Composer File
     protected $verC;
-    
-    protected $blue= "\e[0;34;40m";
-    protected $yellow= "\e[1;33;40m";
-    protected $red= "\e[0;31;40m";
-    protected $grey= "\e[1;30;40m";
-    protected $white= "\e[1;37;m";
-    protected $black= "[0m\n";
-    
+
+    protected $blue = "\e[0;34;40m";
+    protected $yellow = "\e[1;33;40m";
+    protected $red = "\e[0;31;40m";
+    protected $grey = "\e[1;30;40m";
+    protected $white = "\e[1;37;m";
+    protected $black = "[0m\n";
 
 
 
-    public function splash(){
+
+    public function splash()
+    {
         echo "\e[1;34;40m============================================================================\n";
         echo "\e[0;37;40m  P.M.V. - PHP (nWidart) Module Version Management Utility by AndersonPEM\n";
         echo "\e[1;34;40m============================================================================\e[0m\n";
@@ -103,46 +105,50 @@ class Module {
     /**
      * Checks if the data of both files match.
      */
-    public function checkMatch(){
+    public function checkMatch()
+    {
         $counter = 0;
-        $verC= explode('.', $this->compj->version);
-        $verM= explode('.', $this->modj->version);
+        $verC = explode('.', $this->compj->version);
+        $verM = explode('.', $this->modj->version);
         for ($i = 0; $i < 3; $i++) {
             if ($verC[$i] <> $verM[$i]) {
                 $counter++;
             }
         }
-        if ($counter>0) {
+        if ($counter > 0) {
             return false;
-        }
-        else {
+        } else {
             return true;
         }
     }
-    public function error($message){
-        echo ("\e[1;31;40m".$message. "\e[0m\n");
+    public function error($message)
+    {
+        echo ("\e[1;31;40m" . $message . "\e[0m\n");
         die();
     }
-    protected function warnAndDie($message, $title=null){
+    protected function warnAndDie($message, $title = null)
+    {
         echo ("\e[1;33;40m");
-        echo ($title<>null) ? "$title\n" : " ";
+        echo ($title <> null) ? "$title\n" : " ";
         echo ("------------------------------------------------------------------------\n");
         echo ($message) . "\n";
         echo ("------------------------------------------------------------------------\n");
         echo ("\e[0m\n");
-        die();  
+        die();
     }
-    public function success($message){
+    public function success($message)
+    {
         echo ("\n");
         echo ("\e[0;32;40m");
         echo ("-------------------------------------------------\n");
-        echo ($message)."\n";
+        echo ($message) . "\n";
         echo ("-------------------------------------------------\n");
         echo ("\e[0m\n");
         die();
     }
 
-    protected function inform($message){
+    protected function inform($message)
+    {
         echo ("\e[0;32;40m");
         echo ($message) . "\n";
     }
@@ -152,56 +158,62 @@ class Module {
      * @param [string] $ver
      * @return boolean
      */
-    protected function verValid($ver){
+    protected function verValid($ver)
+    {
         if (preg_match('/(^)([0-9][0-9]?)(\.)([0-9][0-9]?)(\.)([0-9][0-9]?)($)/', $ver)) {
             return true;
-        }
-        else{
+        } else {
             $this->error("Error in: setting up version. Error: SemVer incorrect.\nVersion numbering incorrect.\nVersion has to have 3 characters separated by dots (x.x.x)");
         }
     }
-    
-    
-    protected function isSmaller($ver, $force){
+
+
+    protected function isSmaller($ver, $force)
+    {
 
         if ((version_compare($ver, $this->compj->version, '<')) && !($force)) {
-            $this->error("Error: Can't update to an older version.\nThe version you entered is smaller than the current version: ".$this->compj->version."\nTo do it anyway, use the -f or the --force flag in the command's end.\n\nEx: pmv setver 4.5.6 -f");
+            $this->error("Error: Can't update to an older version.\nThe version you entered is smaller than the current version: " . $this->compj->version . "\nTo do it anyway, use the -f or the --force flag in the command's end.\n\nEx: pmv setver 4.5.6 -f");
         }
-
     }
-    protected function isVerEqual($ver){
+    protected function isVerEqual($ver)
+    {
         $arr = explode('.', $ver);
-        if (($arr[0] == $this->maj) || ($arr[1] == $this->min) || ($arr[2] == $this->patch)) {
+        if (version_compare($ver, $this->compj->version, '=')) {
             $this->error("Error: Version is equal\nThe version you specified is already the Module's version.");
         }
     }
-    protected function persistVer($version, $force=false){
+    protected function persistVer($version, $force = false)
+    {
         //Runs the guards first
         $this->verValid($version);
         $this->isSmaller($version, $force);
         $this->isVerEqual($version);
         //Perform the operation
-        $this->compj->version="$version";
-        $this->modj->version="$version";
+        $this->compj->version = "$version";
+        $this->modj->version = "$version";
         $composer = fopen(getcwd() . '/composer.json', "w");
         fwrite($composer, json_encode($this->compj, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         fclose($composer);
         $module = fopen(getcwd() . '/module.json', "w");
         fwrite($module, json_encode($this->modj, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         fclose($module);
-        $this->inform($this->modj->name." (". $this->compj->name.") is now at v". $this->compj->version . " in both Composer\nand nWidart's Module files.");
+        $this->inform($this->modj->name . " (" . $this->compj->name . ") is now at v" . $this->compj->version . " in both Composer\nand nWidart's Module files.");
         $this->success("Changes have been persisted. You can pat yourself\nin the back and have some coffee. ^^");
     }
-    public function summary(){
-        $this->warnAndDie("Module Name: ".$this->modj->name. "\nComposer package name: ".$this->compj->name ."\nv". $this->compj->version. "\n\e[0;34;40mThe Packagist page (assumed):\nhttps://packagist.org/packages/".$this->compj->name. "\e[1;33;40m", "Module Summary");
+    public function summary()
+    {
+        $this->warnAndDie("Module Name: " . $this->modj->name . "\nComposer package name: " . $this->compj->name . "\nv" . $this->compj->version . "\n\e[0;34;40mThe Packagist page (assumed):\nhttps://packagist.org/packages/" . $this->compj->name . "\e[1;33;40m", "Module Summary");
     }
-    public function version(){
+    public function version()
+    {
         echo "$this->name version $this->maj.$this->min.$this->patch";
     }
-    public function help(){
+    public function help()
+    {
         echo "$this->blue P.M.V. - PHP (nWidart) Module Version Management Utility by AndersonPEM\n Help\n\n Commands\n   $this->yellow summary $this->grey [shorthand smr] (no args): $this->white Returns the summary of this module\n   $this->yellow setver$this->blue (version)$this->grey  [additional flag -f to force]:$this->white sets a new version for the Module. $this->yellow\n    help $this->grey [shorthand h] (no args): $this->yellow dude, you're seeing this command right now! (inception sound)\e[0m\n";
     }
-    protected function routes(){
+    protected function routes()
+    {
         //The available functions
         return [
             'summary' => 'summary',
@@ -212,16 +224,16 @@ class Module {
             'h' => 'help',
         ];
     }
-    public function Router($argv){
+    public function Router($argv)
+    {
         $routes = $this->Routes();
         $command = "";
         $parameter = "";
-        $force=false;
+        $force = false;
         if (count($argv) == 1) {
             $this->splash();
-        }
-        else {
-        //Has at least an extra argument
+        } else {
+            //Has at least an extra argument
             for ($i = 0; $i < count($routes) - 1; $i++) {
                 if (array_key_exists($argv[$i], $routes)) {
                     $command = $routes[$argv[$i]];
@@ -237,13 +249,12 @@ class Module {
                     break;
                 }
             }
-    }
-
+        }
     }
 }
 
-    $module = new Module($argv);
-    // $module->router($argv);
+$module = new Module($argv);
+// $module->router($argv);
 /**
  * Possible parameters:
  * no parameter (or -s): Returns a summary of the Module's version.
