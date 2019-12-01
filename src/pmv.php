@@ -13,7 +13,12 @@ class Module {
     /**
      * Class constructor.
      */
-    public function __construct(){
+    protected $argv;
+    public function __construct($argv){
+        if(count($argv)==1){
+            $this->splash();
+            die();
+        }
         if ((file_exists(getcwd() . '/module.json')) && (file_exists(getcwd() . '/composer.json'))) {
             try {
                 $this->modfile = file_get_contents(getcwd() . '/module.json');
@@ -48,6 +53,7 @@ class Module {
             echo "\e[0;34;40m pmv --setver 3.0.0 (example)\e[0m\n";
 
         }
+        $this->router($argv);
     }
     //Module File
     protected $modfile;
@@ -70,6 +76,30 @@ class Module {
     // Version as in the Composer File
     protected $verC;
     
+    protected $blue= "\e[0;34;40m";
+    protected $yellow= "\e[1;33;40m";
+    protected $red= "\e[0;31;40m";
+    protected $grey= "\e[1;30;40m";
+    protected $white= "\e[1;37;m";
+    protected $black= "[0m\n";
+    
+
+
+
+    public function splash(){
+        echo "\e[1;34;40m============================================================================\n";
+        echo "\e[0;37;40m  P.M.V. - PHP (nWidart) Module Version Management Utility by AndersonPEM\n";
+        echo "\e[1;34;40m============================================================================\e[0m\n";
+        echo "'Cause changing version files by hand is boring and I always forget about it ®\n";
+        echo "Command structure: \n";
+        echo "\e[0;34;40m    pmv command parameter\e[0m\n";
+        echo "Or: \n";
+        echo "\e[0;34;40m    pmv s parameter\e[0m\n\n";
+        echo "Where S is the shorthand version of the full comand.\n";
+        echo "\nFor the list of available commands in this script, type pmv help. \n";
+    }
+
+
     /**
      * Checks if the data of both files match.
      */
@@ -93,8 +123,9 @@ class Module {
         echo ("\e[1;31;40m".$message. "\e[0m\n");
         die();
     }
-    protected function warnAndDie($message){
+    protected function warnAndDie($message, $title=null){
         echo ("\e[1;33;40m");
+        echo ($title<>null) ? "$title\n" : " ";
         echo ("------------------------------------------------------------------------\n");
         echo ($message) . "\n";
         echo ("------------------------------------------------------------------------\n");
@@ -129,9 +160,11 @@ class Module {
             $this->error("Error in: setting up version. Error: SemVer incorrect.\nVersion numbering incorrect.\nVersion has to have 3 characters separated by dots (x.x.x)");
         }
     }
+    
+    
     protected function isSmaller($ver, $force){
-        $arr = explode('.', $ver);
-        if (($arr[0]<$this->maj) || ($arr[1]<$this->min) || ($arr[2]<$this->patch) && !($force)) {
+
+        if ((version_compare($ver, $this->compj->version, '<')) && !($force)) {
             $this->error("Error: Can't update to an older version.\nThe version you entered is smaller than the current version: ".$this->compj->version."\nTo do it anyway, use the -f or the --force flag in the command's end.\n\nEx: pmv setver 4.5.6 -f");
         }
 
@@ -159,12 +192,14 @@ class Module {
         $this->inform($this->modj->name." (". $this->compj->name.") is now at v". $this->compj->version . " in both Composer\nand nWidart's Module files.");
         $this->success("Changes have been persisted. You can pat yourself\nin the back and have some coffee. ^^");
     }
-    
+    public function summary(){
+        $this->warnAndDie("Module Name: ".$this->modj->name. "\nComposer package name: ".$this->compj->name ."\nv". $this->compj->version. "\n\e[0;34;40mThe Packagist page (assumed):\nhttps://packagist.org/packages/".$this->compj->name. "\e[1;33;40m", "Module Summary");
+    }
     public function version(){
         echo "$this->name version $this->maj.$this->min.$this->patch";
     }
     public function help(){
-        echo "This is the help of the file";
+        echo "$this->blue P.M.V. - PHP (nWidart) Module Version Management Utility by AndersonPEM\n Help\n\n Commands\n   $this->yellow summary $this->grey [shorthand smr] (no args): $this->white Returns the summary of this module\n   $this->yellow setver$this->blue (version)$this->grey  [additional flag -f to force]:$this->white sets a new version for the Module. $this->yellow\n    help $this->grey [shorthand h] (no args): $this->yellow dude, you're seeing this command right now! (inception sound)\e[0m\n";
     }
     protected function routes(){
         //The available functions
@@ -174,50 +209,41 @@ class Module {
             's' => 'persistVer',
             'setver' => 'persistVer',
             'help' => 'help',
+            'h' => 'help',
         ];
     }
-
     public function Router($argv){
         $routes = $this->Routes();
         $command = "";
         $parameter = "";
         $force=false;
-        if (count($argv) > 1) {
-            //Has at least an extra argument
-            for ($i = 0; $i < count($routes)-1; $i++) {
+        if (count($argv) == 1) {
+            $this->splash();
+        }
+        else {
+        //Has at least an extra argument
+            for ($i = 0; $i < count($routes) - 1; $i++) {
                 if (array_key_exists($argv[$i], $routes)) {
-                    $command= $routes[$argv[$i]];
+                    $command = $routes[$argv[$i]];
                     if (!empty($argv[2])) {
                         $parameter = $argv[2];
                     }
                     if (!empty($argv[3])) {
-                        if(($argv[3] =='-f' )|| ($argv[3] == '--force')){
-                            $force=true;
+                        if (($argv[3] == '-f') || ($argv[3] == '--force')) {
+                            $force = true;
                         }
                     }
                     $this->$command($parameter, $force);
                     break;
                 }
             }
-        }
-        else {
-            echo "\e[1;34;40m============================================================================\n";
-            echo "\e[0;37;40m  P.M.V. - PHP (nWidart) Module Version Management Utility by AndersonPEM\n";
-            echo "\e[1;34;40m============================================================================\e[0m\n";
-            echo "'Cause changing version files by hand is boring and I always forget about it ®\n";
-            echo "Command structure: \n";
-            echo "\e[0;34;40m    pmv command parameter\e[0m\n";
-            echo "Or: \n";
-            echo "\e[0;34;40m    pmv s parameter\e[0m\n\n";
-            echo "Where S is the shorthand version of the full comand.\n";
-            echo "\nFor the list of available commands in this script, type pmv help. \n";
-        }
+    }
 
     }
 }
 
-    $module = new Module();
-    $module->router($argv);
+    $module = new Module($argv);
+    // $module->router($argv);
 /**
  * Possible parameters:
  * no parameter (or -s): Returns a summary of the Module's version.
